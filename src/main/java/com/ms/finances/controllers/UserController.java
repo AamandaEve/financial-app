@@ -2,11 +2,12 @@ package com.ms.finances.controllers;
 
 import com.ms.finances.models.dtos.UserResponseDTO;
 import com.ms.finances.models.dtos.UserSaveDTO;
+import com.ms.finances.models.entities.Users;
 import com.ms.finances.services.UserService;
 import jakarta.validation.Valid;
-import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -23,9 +24,9 @@ public class UserController {
         return ResponseEntity.ok(userService.save(userSaveDTO));
     }
 
-    @PostMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> edit(@PathVariable("id") UUID id, @RequestBody UserSaveDTO userSaveDTO){
-        return ResponseEntity.ok(userService.edit(id, userSaveDTO));
+    @PostMapping("/edit")
+    public ResponseEntity<UserResponseDTO> edit(@RequestBody UserSaveDTO userSaveDTO, @AuthenticationPrincipal Users loggedUser){
+        return ResponseEntity.ok(userService.edit(loggedUser.getId(), userSaveDTO));
     }
 
 }
