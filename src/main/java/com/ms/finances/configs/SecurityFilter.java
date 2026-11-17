@@ -21,15 +21,21 @@ public class SecurityFilter extends OncePerRequestFilter {
     private final UserRepository userRepository;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        // Login é público e não deve depender de um token herdado no cliente HTTP.
+        return "POST".equalsIgnoreCase(request.getMethod()) && "/login".equals(request.getServletPath());
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         var tokenJWT = recuperarToken(request);
 
         if (tokenJWT != null) {
             var subject = tokenService.getSubject(tokenJWT);
-            var user = userRepository.findByEmail(subject);
-
-            var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            userRepository.findByEmail(subject).ifPresent(user -> {
+                var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            });
         }
 
         filterChain.doFilter(request, response);
